@@ -15,71 +15,50 @@ public class RopeBridge {
         for (String move : moves) {
             String[] s = move.split(" ");
             Move move1 = new Move(Direction.valueOf(s[0]), Integer.parseInt(s[1]));
-            Position newPos = getTailPosition(move1, move(move1, headPos), headPos, tailPos, visited, true);
+            tailPos = populateVisitedPositions(visited, headPos, move(move1, headPos), tailPos, move1, true, true);
             headPos = move(move1, headPos);
-            if (!newPos.equals(tailPos)) {
-                tailPos = newPos;
-            }
         }
-        tailPos = new Position(0, 0);
-        headPos = new Position(0, 0);
         System.out.println(visited.size());
+
+
         visited = new HashSet<>();
-        visited.add(tailPos);
+        visited.add(new Position(0, 0));
         Map<Integer, Position> map = new HashMap<>();
-        map.put(1, new Position(0,0));
-        map.put(2, new Position(0,0));
-        map.put(3, new Position(0,0));
-        map.put(4, new Position(0,0));
-        map.put(5, new Position(0,0));
-        map.put(6, new Position(0,0));
-        map.put(7, new Position(0,0));
-        map.put(8, new Position(0,0));
-        map.put(9, new Position(0,0));
-        map.put(10, new Position(0,0));
+        for (int i = 1; i < 11; i++) {
+            map.put(i, new Position(0, 0));
+        }
+        boolean tailMoved = false;
         for (String move : moves) {
             String[] s = move.split(" ");
             Move move1 = new Move(Direction.valueOf(s[0]), Integer.parseInt(s[1]));
-            for (int i=1;i<10;i++) {
-                Position head = map.get(i);
-                Position tail = map.get(i+1);
-                Position newPos = getTailPosition(move1, head, head, tail, visited, i==9);
-                head = move(move1, head);
-                if (i==1)
-                    map.put(i, head);
-                if (!newPos.equals(tail)) {
-                    tail = newPos;
-                    map.put(i+1,tail);
+            for (int steps = 1; steps <= move1.steps; steps++) {
+                for (int i = 1; i < 10; i++) {
+                    Position head = map.get(i);
+                    Position tail = map.get(i + 1);
+                    Position headTarget = i == 1 ? move(new Move(move1.d, 1), head) : head;
+                    Position newTail = populateVisitedPositions(visited, head, headTarget, tail, new Move(move1.d, 1), i == 9, tailMoved);
+                    if(!map.get(i+1).equals(newTail)) {
+                        tailMoved = true;
+                        map.put(i + 1, newTail);
+                    }
+                    if (i == 1)
+                        map.put(i, headTarget);
                 }
             }
         }
         System.out.println(visited.size());
     }
 
-    private Position getTailPosition(Move move, Position head, Position headInit, Position tail, Set<Position> visited, boolean b) {
-        if (!isTouching(head, tail)) {
-            Position targetPosition = null;
-            if (move.d.equals(U)) {
-                targetPosition = new Position(head.x, head.y - 1);
-            } else if (move.d.equals(D)) {
-                targetPosition = new Position(head.x, head.y + 1);
-            } else if (move.d.equals(L)) {
-                targetPosition = new Position(head.x + 1, head.y);
-            } else if (move.d.equals(R)) {
-                targetPosition = new Position(head.x - 1, head.y);
-            }
-            populateVisitedPositions(visited, headInit, tail, move, b);
-            return targetPosition;
+    private Position populateVisitedPositions(Set<Position> visited, Position headInit, Position headTarget, Position tail, Move move, boolean b, boolean moved) {
+        if (isTouching(headTarget, tail)) {
+            return tail;
         }
-        return tail;
-    }
-
-    private void populateVisitedPositions(Set<Position> visited, Position headInit, Position tail, Move move, boolean b) {
         Position newTail = tail;
         Position newHead = headInit;
         for (int i = 0; i < move.steps; i++) {
-            newHead = move(new Move(move.d, 1), newHead);
-            if (!isTouching(newHead, newTail) && needDiagonal(newHead, newTail, move)) {
+            newHead = moved?move(new Move(move.d, 1), newHead):headInit;
+            move=moved?move:new Move(U, 0);
+            if (!isTouching(newHead, newTail) && needDiagonal(newHead, newTail, move, moved?1:0)) {
                 if (move.d.equals(U)) {
                     newTail = new Position(newHead.x, newHead.y - 1);
                 } else if (move.d.equals(D)) {
@@ -94,15 +73,16 @@ public class RopeBridge {
             } else {
                 if (!isTouching(newHead, newTail)) {
                     newTail = move(new Move(move.d, 1), newTail);
-                    if(b)
+                    if (b)
                         visited.add(newTail);
                 }
             }
         }
+        return newTail;
     }
 
-    private boolean needDiagonal(Position newHead, Position newTail, Move move) {
-        Position tmpTail = move(new Move(move.d, 1), newTail);
+    private boolean needDiagonal(Position newHead, Position newTail, Move move, int steps) {
+        Position tmpTail = move(new Move(move.d, steps), newTail);
         return newHead.x != tmpTail.x && newHead.y != tmpTail.y;
     }
 
