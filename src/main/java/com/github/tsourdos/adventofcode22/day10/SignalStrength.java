@@ -1,4 +1,4 @@
-package com.github.tsourdos.adventofcode22;
+package com.github.tsourdos.adventofcode22.day10;
 
 import java.util.Arrays;
 import java.util.List;
