@@ -53,54 +53,62 @@ public class Beacons {
             sensorToManhattan.put(e.getKey(), manhattan);
         }
 //        System.out.println("Part-1: " + res.size());
+        sensorToManhattan=sensorToManhattan.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 
-//        for (int i=0;i<=xyMax;i++) {
-//            for (int j=0;j<=xyMax;j++) {
-//                Point testPoint = new Point(j,i);
-//                boolean covered = false;
-//                for (Map.Entry<Point,Integer> e:sensorToManhattan.entrySet()) {
-//                    int manhattan = getManhattan(e.getKey(), testPoint);
-//                    if (manhattan<=e.getValue()) {
-//                        covered = true;
-//                        break;
-//                    }
-//                }
-//                if (!covered) {
-//                    System.out.println(testPoint);
-//                }
-//            }
-//            if (i%200==0) {
-//                System.out.println(i);
-//            }
-//        }
-
-        List<Line> listP = sensorToManhattan.entrySet()
-                .stream()
-                .map(e-> Arrays.asList(
-                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue())),
-                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(e.getValue()))
-                ))
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-
-        List<Line> listN = sensorToManhattan.entrySet()
-                .stream()
-                .map(e-> Arrays.asList(
-                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(e.getValue())),
-                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue()))
-                ))
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-
-        for (int i=0;i< listP.size();i++) {
-            for (int j=i+1;j< listP.size();j++) {
-                Line line1 = listP.get(i);
-                Line line2 = listP.get(j);
-                if (getManhattan(line1.a, line2.a)==2||getManhattan(line1.b, line2.b)==2||getManhattan(line1.a, line2.b)==2||getManhattan(line1.a, line2.b)==2) {
-                    System.out.println(line1 + " "+ line2);
+        long t1 = 0,t2=0;
+        for (int i=0;i<=xyMax;i++) {
+            Point testPoint = new Point(-1,i);
+            for (int j=0;j<=xyMax;j++) {
+                testPoint.moveHorizontal(1);
+                boolean covered = false;
+                for (Map.Entry<Point,Integer> e:sensorToManhattan.entrySet()) {
+                    if (getManhattan(e.getKey(), testPoint)<=e.getValue()) {
+                        covered = true;
+                        break;
+                    }
+                }
+                if (!covered) {
+                    System.out.println(testPoint);
                 }
             }
+            if (i%200==0) {
+                t2 = System.currentTimeMillis();
+                System.out.println(i + " " + (t2-t1));
+                t1 = System.currentTimeMillis();
+            }
         }
+
+//        List<Line> listP = sensorToManhattan.entrySet()
+//                .stream()
+//                .map(e-> Arrays.asList(
+//                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue())),
+//                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(e.getValue()))
+//                ))
+//                .flatMap(List::stream)
+//                .collect(Collectors.toList());
+//
+//        List<Line> listN = sensorToManhattan.entrySet()
+//                .stream()
+//                .map(e-> Arrays.asList(
+//                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(e.getValue())),
+//                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue()))
+//                ))
+//                .flatMap(List::stream)
+//                .collect(Collectors.toList());
+//
+//        for (int i=0;i< listP.size();i++) {
+//            for (int j=i+1;j< listP.size();j++) {
+//                Line line1 = listP.get(i);
+//                Line line2 = listP.get(j);
+//                if (getManhattan(line1.a, line2.a)==2||getManhattan(line1.b, line2.b)==2||getManhattan(line1.a, line2.b)==2||getManhattan(line1.a, line2.b)==2) {
+//                    System.out.println(line1 + " "+ line2);
+//                }
+//            }
+//        }
     }
 
     private Set<Point> getCoveredPoints1(Point s, int manhattan) {
