@@ -9,10 +9,13 @@ import static java.lang.Integer.parseInt;
 public class Beacons {
     Pattern pattern = Pattern.compile("Sensor at x=(-?\\d+), y=(-?\\d+): closest beacon is at x=(-?\\d+), y=(-?\\d+)");
 
-//    int Y = 2000000;
-        int Y = 10;
+        int Y = 2000000;
+//    int Y = 10;
+//    int xyMax = 20;
+    int xyMax = 4000000;
     Set<Point> beacons = new HashSet<>();
     Map<Integer, Set<Point>> sensors = new HashMap<>();
+    Map<Point, Integer> sensorToManhattan = new HashMap<>();
 
     public void analyse(String input) {
         String[] lines = input.split("\n");
@@ -24,8 +27,8 @@ public class Beacons {
                 Point s = new Point(parseInt(matcher.group(1)), parseInt(matcher.group(2)));
                 Point b = new Point(parseInt(matcher.group(3)), parseInt(matcher.group(4)));
                 beacons.add(b);
-                sensors.compute(s.y,(k,v)->{
-                    if (v==null) {
+                sensors.compute(s.y, (k, v) -> {
+                    if (v == null) {
                         Set<Point> objects = new HashSet<>();
                         objects.add(s);
                         return objects;
@@ -42,31 +45,30 @@ public class Beacons {
             }
         }
 
-//        Set<Point> res = new HashSet<>();
-//        for (Map.Entry<Point, Point> e : in) {
-//            res.addAll(getCoveredPoints1(e.getKey(), getManhattan(e.getKey(), e.getValue())));
-//            System.out.println(e);
-//        }
         Set<Point> res = new HashSet<>();
-        for (int y=0;y<=4000000;y++) {
-            Y = y;
-            for (Map.Entry<Point, Point> e : in) {
-                int manhattan = getManhattan(e.getKey(), e.getValue());
-                res.addAll(getCoveredPoints1(e.getKey(), manhattan));
-            }
-            if (sensors.containsKey(Y)) {
-                res.addAll(sensors.get(Y));
-            }
-            if(res.size()!=4000001) {
-                break;
-            }
-            System.out.println(y);
-            res = new HashSet<>();
+        for (Map.Entry<Point, Point> e : in) {
+            int manhattan = getManhattan(e.getKey(), e.getValue());
+            res.addAll(getCoveredPoints1(e.getKey(), manhattan));
+            sensorToManhattan.put(e.getKey(), manhattan);
         }
-        for (int x=0;x<=4000000;x++) {
-            if (!res.contains(new Point(x,Y))) {
-                System.out.println(new Point(x,Y));
+        System.out.println("Part-1: " + res.size());
+
+        for (int i=0;i<=xyMax;i++) {
+            for (int j=0;j<=xyMax;j++) {
+                Point testPoint = new Point(j,i);
+                boolean covered = false;
+                for (Map.Entry<Point,Integer> e:sensorToManhattan.entrySet()) {
+                    int manhattan = getManhattan(e.getKey(), testPoint);
+                    if (manhattan<=e.getValue()) {
+                        covered = true;
+                        break;
+                    }
+                }
+                if (!covered) {
+                    System.out.println(testPoint);
+                }
             }
+            System.out.println(i);
         }
     }
 
@@ -82,7 +84,7 @@ public class Beacons {
         } else if (s.y > Y) {
             int i = s.y - Y;
             int j = manhattan - i;
-            if (manhattan>=i) {
+            if (manhattan >= i) {
                 Point up = new Point(s.x, s.y - i);
                 add(covered, up);
                 for (int a = 1; a <= j; a++) {
@@ -93,7 +95,7 @@ public class Beacons {
         } else {
             int i = Y - s.y;
             int j = manhattan - i;
-            if (manhattan>=i) {
+            if (manhattan >= i) {
                 Point down = new Point(s.x, s.y + i);
                 add(covered, down);
                 for (int a = 1; a <= j; a++) {
@@ -106,8 +108,7 @@ public class Beacons {
     }
 
     private boolean add(Set<Point> covered, Point point) {
-//        if (point.y == Y && !beacons.contains(point)) {
-        if (point.y == Y && point.x>=0&&point.x<=4000000) {
+        if (point.y == Y && !beacons.contains(point)) {
             return covered.add(point);
         }
         return false;
@@ -156,9 +157,9 @@ public class Beacons {
         @Override
         public String toString() {
             return "Point{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
+                    "x=" + x +
+                    ", y=" + y +
+                    '}';
         }
     }
 }
