@@ -3,6 +3,7 @@ package com.github.tsourdos.adventofcode22.day15;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 
@@ -45,30 +46,60 @@ public class Beacons {
             }
         }
 
-        Set<Point> res = new HashSet<>();
+//        Set<Point> res = new HashSet<>();
         for (Map.Entry<Point, Point> e : in) {
             int manhattan = getManhattan(e.getKey(), e.getValue());
-            res.addAll(getCoveredPoints1(e.getKey(), manhattan));
+//            res.addAll(getCoveredPoints1(e.getKey(), manhattan));
             sensorToManhattan.put(e.getKey(), manhattan);
         }
-        System.out.println("Part-1: " + res.size());
+//        System.out.println("Part-1: " + res.size());
 
-        for (int i=0;i<=xyMax;i++) {
-            for (int j=0;j<=xyMax;j++) {
-                Point testPoint = new Point(j,i);
-                boolean covered = false;
-                for (Map.Entry<Point,Integer> e:sensorToManhattan.entrySet()) {
-                    int manhattan = getManhattan(e.getKey(), testPoint);
-                    if (manhattan<=e.getValue()) {
-                        covered = true;
-                        break;
-                    }
-                }
-                if (!covered) {
-                    System.out.println(testPoint);
+//        for (int i=0;i<=xyMax;i++) {
+//            for (int j=0;j<=xyMax;j++) {
+//                Point testPoint = new Point(j,i);
+//                boolean covered = false;
+//                for (Map.Entry<Point,Integer> e:sensorToManhattan.entrySet()) {
+//                    int manhattan = getManhattan(e.getKey(), testPoint);
+//                    if (manhattan<=e.getValue()) {
+//                        covered = true;
+//                        break;
+//                    }
+//                }
+//                if (!covered) {
+//                    System.out.println(testPoint);
+//                }
+//            }
+//            if (i%200==0) {
+//                System.out.println(i);
+//            }
+//        }
+
+        List<Line> listP = sensorToManhattan.entrySet()
+                .stream()
+                .map(e-> Arrays.asList(
+                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue())),
+                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(e.getValue()))
+                ))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        List<Line> listN = sensorToManhattan.entrySet()
+                .stream()
+                .map(e-> Arrays.asList(
+                        new Line(new Point(e.getKey()).moveHorizontal(e.getValue()),new Point(e.getKey()).moveVertical(e.getValue())),
+                        new Line(new Point(e.getKey()).moveHorizontal(-e.getValue()),new Point(e.getKey()).moveVertical(-e.getValue()))
+                ))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        for (int i=0;i< listP.size();i++) {
+            for (int j=i+1;j< listP.size();j++) {
+                Line line1 = listP.get(i);
+                Line line2 = listP.get(j);
+                if (getManhattan(line1.a, line2.a)==2||getManhattan(line1.b, line2.b)==2||getManhattan(line1.a, line2.b)==2||getManhattan(line1.a, line2.b)==2) {
+                    System.out.println(line1 + " "+ line2);
                 }
             }
-            System.out.println(i);
         }
     }
 
@@ -116,6 +147,36 @@ public class Beacons {
 
     private int getManhattan(Point p1, Point p2) {
         return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+    }
+
+    public class Line {
+        Point a,b;
+
+        public Line(Point a, Point b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Line line = (Line) o;
+            return Objects.equals(a, line.a) && Objects.equals(b, line.b);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(a, b);
+        }
+
+        @Override
+        public String toString() {
+            return "Line{" +
+                    "a=" + a +
+                    ", b=" + b +
+                    '}';
+        }
     }
 
     public class Point {
