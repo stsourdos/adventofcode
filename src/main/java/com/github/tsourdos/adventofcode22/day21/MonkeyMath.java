@@ -33,21 +33,20 @@ public class MonkeyMath {
         String monkey1 = unknown.get("root").trim().split(" ")[0];
         String monkey2 = unknown.get("root").trim().split(" ")[2];
         known.remove("humn");
-        while (known.size() < totalMonkeys-1) {
+        while (known.size() < totalMonkeys - 1) {
             for (Map.Entry<String, String> e : unknown.entrySet()) {
                 if (e.getKey().equals("root")) continue;
                 String operation = e.getValue();
                 String[] s = operation.trim().split(" ");
-                if (known.containsKey(s[0]) && known.containsKey(s[2])) {
+                if (!known.containsKey(e.getKey()) && known.containsKey(s[0]) && known.containsKey(s[2]))
                     known.put(e.getKey(), getOpResult(known.get(s[0]), s[1], known.get(s[2])));
-                } else if (known.containsKey(s[0]) && known.containsKey(e.getKey())) {
+                else if (!known.containsKey(s[2]) && known.containsKey(s[0]) && known.containsKey(e.getKey()))
                     known.put(s[2], getOpResult1(known.get(e.getKey()), s[1], known.get(s[0])));
-                } else if (known.containsKey(s[2]) && known.containsKey(e.getKey())) {
+                else if (!known.containsKey(s[0]) && known.containsKey(s[2]) && known.containsKey(e.getKey()))
                     known.put(s[0], getOpResult1(known.get(e.getKey()), s[1], known.get(s[2])));
-                }
-                if (known.containsKey(e.getKey())&& e.getKey().equals(monkey1))
+                if (known.containsKey(e.getKey()) && e.getKey().equals(monkey1) && !known.containsKey(monkey2))
                     known.put(monkey2, known.get(monkey1));
-                if (known.containsKey(e.getKey())&& e.getKey().equals(monkey2))
+                if (known.containsKey(e.getKey()) && e.getKey().equals(monkey2) && !known.containsKey(monkey1))
                     known.put(monkey1, known.get(monkey2));
             }
         }
